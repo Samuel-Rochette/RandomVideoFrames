@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+
+    <title>Video Frames</title>
+  </head>
+  <noscript>
+      You need to enable JavaScript to run this app.
+  </noscript>
+  <div id="root"></div>
+  <ul id="ulFrames"></ul>
+
+  <script>
+    const path = '' // path to find videos
+    const epMax = 1 // max number of episodes
+    const epMin = 1 // min number of episodes
+    const timeMax = 1300 // max time of video in seconds
+    const timeMin = 1 // min time of video in seconds
+    function getVideoImage(path, secs, callback) {
+      var me = this, video = document.createElement('video');
+      video.onloadedmetadata = function() {
+        if ('function' === typeof secs) {
+          secs = secs(this.duration);
+        }
+        this.currentTime = Math.min(Math.max(0, (secs < 0 ? this.duration : 0) + secs), this.duration);
+      };
+      video.onseeked = function(e) {
+        var canvas = document.createElement('canvas');
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        var img = new Image();
+        img.src = canvas.toDataURL();
+        callback.call(me, img, this.currentTime, e);
+      };
+      video.onerror = function(e) {
+        callback.call(me, undefined, undefined, e);
+      };
+      video.src = path;
+    }
+
+    function getRandomArbitrary(max, min) {
+      min = min || 0;
+      return Math.round(Math.random() * (max - min) + min);
+    }
+
+    getVideoImage(path + getRandomArbitrary(epMax, epMin) + '.mp4', getRandomArbitrary(timeMax, timeMin), function(img, seconds, event) {
+      if (event.type == 'seeked') {
+          var li = document.createElement('li')
+          li.appendChild(img)
+          document.getElementById('ulFrames').appendChild(li)
+      }
+    })
+  </script>
+</html>
